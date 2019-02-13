@@ -7,7 +7,6 @@ import com.example.photogallery.model.Gallery;
 import com.example.photogallery.model.GalleryItem;
 import com.google.gson.Gson;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,7 +17,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class FlickrFetcher {
@@ -26,6 +24,20 @@ public class FlickrFetcher {
     private static final String TAG = "FlickrFetcher";
 
     private static final String API_KEY = "79b5c28546b0c0fd5a0bdc65ac9eab18";
+
+    private Uri ENDPOINT = Uri.parse("https://api.flickr.com/services/rest/")
+            .buildUpon()
+            .appendQueryParameter("api_key", API_KEY)
+            .appendQueryParameter("format", "json")
+            .appendQueryParameter("nojsoncallback", "1")
+            .appendQueryParameter("extras", "url_s")
+            .appendQueryParameter("user_id", "34427466731@N01")
+            .build();
+
+    private enum FlickrMethods {
+        POPULAR,
+        SEARCH
+    }
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
         URL url = new URL(urlSpec);
@@ -61,17 +73,7 @@ public class FlickrFetcher {
         return new String(getUrlBytes(urlSpec));
     }
 
-    public List<GalleryItem> fetchItems() throws IOException {
-        String url = Uri.parse("https://api.flickr.com/services/rest/")
-                .buildUpon()
-                .appendQueryParameter("method", "flickr.photos.getPopular")
-                .appendQueryParameter("api_key", API_KEY)
-                .appendQueryParameter("format", "json")
-                .appendQueryParameter("nojsoncallback", "1")
-                .appendQueryParameter("extras", "url_s")
-                .appendQueryParameter("user_id", "34427466731@N01")
-                .build().toString();
-
+    public List<GalleryItem> downloadGalleryItems(String url) throws IOException {
         String result = getUrlString(url);
         Log.d(TAG, "fetched: " + result);
 
@@ -104,5 +106,32 @@ public class FlickrFetcher {
         }
 
         return galleryItems;
+    }
+
+    public List<GalleryItem> fetchPopular() throws IOException {
+//        String url = buildUrl(FlickrMethods.POPULAR, null);
+        return downloadGalleryItems(buildUrl(FlickrMethods.POPULAR, null));
+    }
+
+    public List<GalleryItem> searchGalleryItems(String query) throws IOException {
+//        String url = buildUrl(FlickrMethods.SEARCH, query);
+        return downloadGalleryItems(buildUrl(FlickrMethods.SEARCH, query));
+    }
+
+    private String buildUrl(FlickrMethods methods, String query) {
+        Uri.Builder builder = ENDPOINT.buildUpon();
+        switch (methods) {
+            case POPULAR:
+                builder.appendQueryParameter("method", "flickr.photos.getPopular");
+                break;
+            case SEARCH:
+                builder.appendQueryParameter("method", "flickr.photos.search")
+                        .appendQueryParameter("text", query);
+                break;
+            default:
+                return null;
+        }
+
+        return builder.build().toString();
     }
 }

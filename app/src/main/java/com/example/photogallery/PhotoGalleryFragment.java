@@ -1,29 +1,32 @@
 package com.example.photogallery;
 
 
-import android.graphics.drawable.Drawable;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.SearchView;
+
+import com.example.photogallery.model.GalleryItem;
+import com.example.photogallery.network.FlickrFetcher;
+import com.example.photogallery.prefs.QueryPreferences;
+import com.squareup.picasso.Picasso;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.example.photogallery.model.GalleryItem;
-import com.example.photogallery.network.FlickrFetcher;
-import com.squareup.picasso.Picasso;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -55,7 +58,8 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         setRetainInstance(true);
-        new PhotoTask().execute();
+        setHasOptionsMenu(true);
+        updateItems();
     }
 
     @Override
@@ -71,9 +75,59 @@ public class PhotoGalleryFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
+        inflater.inflate(R.menu.fragment_photo_gallery, menu);
+        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                QueryPreferences.setStoredQuery(getActivity(), query);
+                updateItems();
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String query = QueryPreferences.getStoredQuery(getActivity());
+                searchView.setQuery(query, false);
+            }
+        });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_item_search:
+                return true;
+            case R.id.menu_item_clear:
+                QueryPreferences.setStoredQuery(getActivity(), null);
+                updateItems();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     private void setupAdapter() {
         if (isAdded())
             mRecyclerView.setAdapter(new PhotoAdapter(mGalleryItems));
+    }
+
+    private void updateItems() {
+        String query = QueryPreferences.getStoredQuery(getActivity());
+        new PhotoTask().execute(query);
     }
 
     private class PhotoHolder extends RecyclerView.ViewHolder {
@@ -127,12 +181,21 @@ public class PhotoGalleryFragment extends Fragment {
         }
     }
 
-    private class PhotoTask extends AsyncTask<Void, Void, List<GalleryItem>> {
+    private class PhotoTask extends AsyncTask<String, Void, List<GalleryItem>> {
 
         @Override
-        protected List<GalleryItem> doInBackground(Void... voids) {
+        protected List<GalleryItem> doInBackground(String... params) {
+            String query = null;
+            List<GalleryItem> galleryItems;
             try {
-                List<GalleryItem> galleryItems = new FlickrFetcher().fetchItems();
+                if (params != null && params.length > 0)
+                    query = params[0];
+
+                if (query == null) {
+                    galleryItems = new FlickrFetcher().fetchPopular();
+                } else {
+                    galleryItems = new FlickrFetcher().searchGalleryItems(query);
+                }
                 return galleryItems;
             } catch (IOException e) {
                 e.printStackTrace();
