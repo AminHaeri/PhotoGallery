@@ -2,8 +2,12 @@ package com.example.photogallery;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Parcelable;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,6 +21,9 @@ public class TestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_test);
 
         mTextView = findViewById(R.id.textView);
+
+        Intent intent = new Intent(this, MyService.class);
+        startActivity(intent);
 
         TestAsync testAsync = new TestAsync();
         testAsync.execute();

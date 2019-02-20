@@ -3,6 +3,7 @@ package com.example.photogallery;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -80,6 +81,7 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
 
         inflater.inflate(R.menu.fragment_photo_gallery, menu);
+        MenuItem togglePollingItem = menu.findItem(R.id.menu_item_toggle_polling);
         MenuItem searchItem = menu.findItem(R.id.menu_item_search);
         final SearchView searchView = (SearchView) searchItem.getActionView();
 
@@ -104,6 +106,12 @@ public class PhotoGalleryFragment extends Fragment {
                 searchView.setQuery(query, false);
             }
         });
+
+        if (isScheduleOrServiceOn()) {
+            togglePollingItem.setTitle(R.string.stop_polling);
+        } else {
+            togglePollingItem.setTitle(R.string.start_polling);
+        }
     }
 
     @Override
@@ -114,6 +122,14 @@ public class PhotoGalleryFragment extends Fragment {
             case R.id.menu_item_clear:
                 QueryPreferences.setStoredQuery(getActivity(), null);
                 updateItems();
+                return true;
+            case R.id.menu_item_toggle_polling:
+//                PollService.setServiceAlarm(getActivity(),
+//                        !PollService.isAlarmOn(getActivity()));
+
+                setScheduleOrAlarm(isScheduleOrServiceOn());
+
+                getActivity().invalidateOptionsMenu();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -128,6 +144,22 @@ public class PhotoGalleryFragment extends Fragment {
     private void updateItems() {
         String query = QueryPreferences.getStoredQuery(getActivity());
         new PhotoTask().execute(query);
+    }
+
+    private void setScheduleOrAlarm(boolean isOn) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            PollJobService.scheduleService(getActivity(), isOn);
+        } else {
+            PollService.setServiceAlarm(getActivity(), isOn);
+        }
+    }
+
+    private boolean isScheduleOrServiceOn() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return PollJobService.isScheduled(getActivity());
+        } else {
+            return PollService.isAlarmOn(getActivity());
+        }
     }
 
     private class PhotoHolder extends RecyclerView.ViewHolder {

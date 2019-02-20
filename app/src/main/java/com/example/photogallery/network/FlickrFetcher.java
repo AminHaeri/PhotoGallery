@@ -122,7 +122,7 @@ public class FlickrFetcher {
         Uri.Builder builder = ENDPOINT.buildUpon();
         switch (methods) {
             case POPULAR:
-                builder.appendQueryParameter("method", "flickr.photos.getPopular");
+                builder.appendQueryParameter("method", "flickr.photos.getRecent");
                 break;
             case SEARCH:
                 builder.appendQueryParameter("method", "flickr.photos.search")
