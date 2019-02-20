@@ -1,6 +1,8 @@
-package com.example.photogallery;
+package com.example.photogallery.controller;
 
 import android.os.Bundle;
+
+import com.example.photogallery.R;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;

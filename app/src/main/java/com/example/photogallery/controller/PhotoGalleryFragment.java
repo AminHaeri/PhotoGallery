@@ -1,9 +1,7 @@
-package com.example.photogallery;
+package com.example.photogallery.controller;
 
 
-import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -14,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.SearchView;
 
+import com.example.photogallery.service.PollService;
+import com.example.photogallery.R;
 import com.example.photogallery.model.GalleryItem;
 import com.example.photogallery.network.FlickrFetcher;
 import com.example.photogallery.prefs.QueryPreferences;
@@ -33,7 +33,7 @@ import androidx.recyclerview.widget.RecyclerView;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends VisibleFragment {
 
     private static final String TAG = "PhotoGalleryFragment";
 
@@ -127,8 +127,7 @@ public class PhotoGalleryFragment extends Fragment {
 //                PollService.setServiceAlarm(getActivity(),
 //                        !PollService.isAlarmOn(getActivity()));
 
-                setScheduleOrAlarm(isScheduleOrServiceOn());
-
+                setScheduleOrAlarm(!isScheduleOrServiceOn());
                 getActivity().invalidateOptionsMenu();
                 return true;
             default:
@@ -147,19 +146,21 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     private void setScheduleOrAlarm(boolean isOn) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        PollService.setServiceAlarm(getActivity(), isOn);
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             PollJobService.scheduleService(getActivity(), isOn);
         } else {
             PollService.setServiceAlarm(getActivity(), isOn);
-        }
+        }*/
     }
 
     private boolean isScheduleOrServiceOn() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        return PollService.isAlarmOn(getActivity());
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             return PollJobService.isScheduled(getActivity());
         } else {
             return PollService.isAlarmOn(getActivity());
-        }
+        }*/
     }
 
     private class PhotoHolder extends RecyclerView.ViewHolder {
@@ -177,7 +178,7 @@ public class PhotoGalleryFragment extends Fragment {
             mGalleryItem = galleryItem;
 
             Picasso.get()
-                    .load(mGalleryItem.getUrl())
+                    .load(R.drawable.ic_placeholder_image_android)
                     .placeholder(R.drawable.ic_placeholder_image_android)
                     .into(mGalleryImageView);
         }

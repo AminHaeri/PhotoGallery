@@ -1,16 +1,18 @@
-package com.example.photogallery;
+package com.example.photogallery.controller;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Parcelable;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.example.photogallery.service.MyService;
+import com.example.photogallery.R;
+
+/**
+ * This is for testing
+ */
 public class TestActivity extends AppCompatActivity {
 
     private TextView mTextView;
@@ -24,6 +26,7 @@ public class TestActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, MyService.class);
         startActivity(intent);
+
 
         TestAsync testAsync = new TestAsync();
         testAsync.execute();
