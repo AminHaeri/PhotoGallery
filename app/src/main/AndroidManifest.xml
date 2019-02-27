@@ -20,6 +20,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <activity android:name=".controller.PhotoPageActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"></activity>
+
         <receiver
             android:name=".receiver.NotificationReceiver"
             android:exported="false">

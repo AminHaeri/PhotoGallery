@@ -1,6 +1,7 @@
 package com.example.photogallery.controller;
 
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -172,13 +173,20 @@ public class PhotoGalleryFragment extends VisibleFragment {
             super(itemView);
 
             mGalleryImageView = itemView.findViewById(R.id.list_item_image_view);
+            mGalleryImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = PhotoPageActivity.newIntent(getActivity(), mGalleryItem.getPhotoUri());
+                    startActivity(intent);
+                }
+            });
         }
 
         public void bindGalleryItem(GalleryItem galleryItem) {
             mGalleryItem = galleryItem;
 
             Picasso.get()
-                    .load(R.drawable.ic_placeholder_image_android)
+                    .load(mGalleryItem.getUrl())
                     .placeholder(R.drawable.ic_placeholder_image_android)
                     .into(mGalleryImageView);
         }

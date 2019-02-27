@@ -85,22 +85,6 @@ public class FlickrFetcher {
             Gallery gallery = gson.fromJson(photosJsonObject.toString(), Gallery.class);
             galleryItems = gallery.getGalleryItems();
 
-            /*JSONArray photoJsonArray = photosJsonObject.getJSONArray("photo");
-            GalleryItem[] arrayGalleryItems = new Gson().fromJson(photoJsonArray.toString(), GalleryItem[].class);
-            galleryItems = Arrays.asList(arrayGalleryItems);*/
-//            for (int i = 0; i < photoJsonArray.length(); i++) {
-//                JSONObject photoJsonObject = photoJsonArray.getJSONObject(i);
-////
-////                String id = photoJsonObject.getString("id");
-////                String caption = photoJsonObject.getString("title");
-////                String url_s = photoJsonObject.getString("url_s");
-////
-////                GalleryItem galleryItem = new GalleryItem(id, caption, url_s);
-//
-//                Gson gson = new Gson();
-//                GalleryItem galleryItem = gson.fromJson(photoJsonObject.toString(), GalleryItem.class);
-//                galleryItems.add(galleryItem);
-//            }
         } catch (JSONException e) {
             Log.e(TAG, "fail to parse json ", e);
         }
@@ -109,12 +93,10 @@ public class FlickrFetcher {
     }
 
     public List<GalleryItem> fetchPopular() throws IOException {
-//        String url = buildUrl(FlickrMethods.POPULAR, null);
         return downloadGalleryItems(buildUrl(FlickrMethods.POPULAR, null));
     }
 
     public List<GalleryItem> searchGalleryItems(String query) throws IOException {
-//        String url = buildUrl(FlickrMethods.SEARCH, query);
         return downloadGalleryItems(buildUrl(FlickrMethods.SEARCH, query));
     }
 
@@ -122,7 +104,7 @@ public class FlickrFetcher {
         Uri.Builder builder = ENDPOINT.buildUpon();
         switch (methods) {
             case POPULAR:
-                builder.appendQueryParameter("method", "flickr.photos.getRecent");
+                builder.appendQueryParameter("method", "flickr.photos.getPopular");
                 break;
             case SEARCH:
                 builder.appendQueryParameter("method", "flickr.photos.search")
