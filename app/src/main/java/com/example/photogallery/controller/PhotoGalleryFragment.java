@@ -2,8 +2,12 @@ package com.example.photogallery.controller;
 
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -13,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.SearchView;
 
+import com.example.photogallery.ThumbnailDownloader;
 import com.example.photogallery.service.PollService;
 import com.example.photogallery.R;
 import com.example.photogallery.model.GalleryItem;
@@ -42,6 +47,8 @@ public class PhotoGalleryFragment extends VisibleFragment {
     private PhotoAdapter mAdapter;
     private List<GalleryItem> mGalleryItems = new ArrayList<>();
 
+    private ThumbnailDownloader mThumbnailDownloader;
+
     public static PhotoGalleryFragment newInstance() {
         
         Bundle args = new Bundle();
@@ -62,6 +69,26 @@ public class PhotoGalleryFragment extends VisibleFragment {
         setRetainInstance(true);
         setHasOptionsMenu(true);
         updateItems();
+
+        Handler responseHandler = new Handler();
+        mThumbnailDownloader = new ThumbnailDownloader(responseHandler);
+        mThumbnailDownloader.start();
+        mThumbnailDownloader.getLooper();
+
+        mThumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener() {
+            @Override
+            public void onThumbnailDownloaded(Object target, Bitmap thumbnail) {
+                Drawable drawable = new BitmapDrawable(getResources(), thumbnail);
+                ((PhotoHolder)target).bindDrawable(drawable);
+            }
+        });
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        mThumbnailDownloader.quit();
     }
 
     @Override
@@ -75,6 +102,13 @@ public class PhotoGalleryFragment extends VisibleFragment {
         setupAdapter();
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        mThumbnailDownloader.clearQueue();
     }
 
     @Override
@@ -164,7 +198,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
         }*/
     }
 
-    private class PhotoHolder extends RecyclerView.ViewHolder {
+    public class PhotoHolder extends RecyclerView.ViewHolder {
 
         private ImageView mGalleryImageView;
         private GalleryItem mGalleryItem;
@@ -184,11 +218,16 @@ public class PhotoGalleryFragment extends VisibleFragment {
 
         public void bindGalleryItem(GalleryItem galleryItem) {
             mGalleryItem = galleryItem;
+            mThumbnailDownloader.queueThumbnail(galleryItem.getUrl(), this);
 
-            Picasso.get()
-                    .load(mGalleryItem.getUrl())
-                    .placeholder(R.drawable.ic_placeholder_image_android)
-                    .into(mGalleryImageView);
+//            Picasso.get()
+//                    .load(mGalleryItem.getUrl())
+//                    .placeholder(R.drawable.ic_placeholder_image_android)
+//                    .into(mGalleryImageView);
+        }
+
+        public void bindDrawable(Drawable drawable) {
+            mGalleryImageView.setImageDrawable(drawable);
         }
     }
 
